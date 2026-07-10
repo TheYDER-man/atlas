@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Atlas — Map your thoughts</title>
 <meta name="description" content="Atlas turns scattered thoughts into a living map. Notes, images, links and ideas in one connected visual space.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#faf8f3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Atlas">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <style>
 :root{
   --paper:#faf8f3; --paper2:#f3f0e8; --ink:#2b2926; --ink2:#6b6659; --ink3:#a39d8c;
@@ -191,7 +198,65 @@ input,textarea{font-family:inherit;color:inherit}
   #notepanel.open{position:absolute;right:0;top:0;bottom:0;width:min(380px,92vw);min-width:0;box-shadow:var(--shadow-lg)}
   #sidebar{position:absolute;top:0;bottom:0;box-shadow:var(--shadow-lg)}
   #landing .peek{display:none}
+  #fab{display:flex!important}
+  #toolbar{bottom:14px;padding:4px}
+  #toolbar button{padding:6px 10px}
+  #zoombar{display:none}
 }
+
+/* ---------- Themes ---------- */
+body[data-theme="ink"]{
+  --paper:#161719; --paper2:#212327; --ink:#e9e7e1; --ink2:#a8a49a; --ink3:#67645c;
+  --line:#2d2f34; --accent:#8f8fff; --accent-soft:#2c2c4e; --warm:#d98e54;
+  --card:#1f2125; --edge:#3d3f46; --dot:#242628;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.5),0 20px 48px rgba(0,0,0,.45);
+}
+body[data-theme="dusk"]{
+  --paper:#f2edf6; --paper2:#e8e1ef; --ink:#332d3b; --ink2:#6f6779; --ink3:#a89fb4;
+  --line:#dcd2e6; --accent:#7a4fbf; --accent-soft:#ece1fa; --warm:#c26a4f;
+  --card:#fffdff; --edge:#cfc1de; --dot:#dcd1e7;
+}
+#stage{touch-action:none}
+#edges path{stroke:var(--edge,#c9c2b0)}
+
+/* ---------- Node colors ---------- */
+.node[data-c="rose"]{background:#fbeef0;border-color:#e7bcc2}.node[data-c="amber"]{background:#fdf3e3;border-color:#eccf9a}
+.node[data-c="sage"]{background:#edf5ee;border-color:#b9d6bf}.node[data-c="sky"]{background:#ecf3f9;border-color:#b0cce2}
+.node[data-c="lilac"]{background:#f4eefa;border-color:#d0b9e6}
+body[data-theme="ink"] .node[data-c="rose"]{background:#33262a;border-color:#6e4650}body[data-theme="ink"] .node[data-c="amber"]{background:#332c20;border-color:#77602f}
+body[data-theme="ink"] .node[data-c="sage"]{background:#22301f;border-color:#4a6a45}body[data-theme="ink"] .node[data-c="sky"]{background:#1f2b36;border-color:#3f607c}
+body[data-theme="ink"] .node[data-c="lilac"]{background:#2b2336;border-color:#5c4478}
+#node-tools .sw{width:15px;height:15px;border-radius:50%;padding:0;margin:6px 2px;border:1.5px solid rgba(255,255,255,.5)}
+#node-tools .sw[data-color=""]{background:transparent}
+#node-tools .sw[data-color="rose"]{background:#e7a6b0}#node-tools .sw[data-color="amber"]{background:#eac57e}
+#node-tools .sw[data-color="sage"]{background:#9ecba7}#node-tools .sw[data-color="sky"]{background:#8fb9d9}
+#node-tools .sw[data-color="lilac"]{background:#c2a1e0}
+
+/* map-link nodes */
+.node .maprow{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--ink2)}
+.node .maprow button{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600}
+.node.has-map{border-style:dashed}
+
+/* focus mode */
+#stage.focusing .node{opacity:.18;transition:opacity .25s}
+#stage.focusing .node.selected,#stage.focusing .node.fneighbor{opacity:1}
+#stage.focusing #edges path{opacity:.1}
+#stage.focusing #edges path.hl{opacity:1}
+
+/* tasks list */
+.sr-item .chk{display:inline-block;width:13px;height:13px;border:1.5px solid #3d8b6b;border-radius:4px;margin-right:7px;vertical-align:-2px}
+
+/* mobile fab */
+#fab{display:none;position:absolute;bottom:76px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:26px;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);z-index:37}
+
+/* template picker */
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.tpl{border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:left;background:var(--paper)}
+.tpl:hover{border-color:var(--accent);background:var(--accent-soft)}
+.tpl b{display:block;font-size:13.5px;margin-bottom:3px}
+.tpl span{font-size:11.5px;color:var(--ink2);line-height:1.4}
+.modal textarea{width:100%;min-height:130px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;outline:none;resize:vertical;font-family:inherit;background:var(--card);color:var(--ink);margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -237,6 +302,7 @@ input,textarea{font-family:inherit;color:inherit}
     <div id="sb-head"><span class="dot"></span><span class="name">Atlas</span>
       <button class="collapse" id="sb-collapse" title="Hide sidebar">⟨</button></div>
     <button class="sb-btn" id="btn-new-thought"><span class="ic">✦</span>New thought</button>
+    <button class="sb-btn" id="btn-tasks"><span class="ic">✓</span>Tasks<span id="task-count" style="margin-left:auto;font-size:11px;color:var(--ink3)"></span></button>
     <div id="sb-search"><span class="ic">⌕</span><input id="search-input" placeholder="Search everything…" autocomplete="off"></div>
     <div id="search-results"></div>
     <div id="sb-maps">
@@ -245,6 +311,7 @@ input,textarea{font-family:inherit;color:inherit}
       <button class="sb-btn" id="btn-new-map"><span class="ic">＋</span>New map</button>
     </div>
     <div id="sb-foot">
+      <button class="sb-btn" id="btn-theme"><span class="ic">◐</span>Theme: <span id="theme-name">Paper</span></button>
       <div id="sync-status">Local only — your maps live in this browser.</div>
       <div id="sb-auth"><button class="sb-btn" id="btn-signin">Sign in to sync</button></div>
       <div id="auth-form" class="hidden">
@@ -268,6 +335,7 @@ input,textarea{font-family:inherit;color:inherit}
     </div>
     <div id="toolbar">
       <button id="tb-thought"><span class="ic">✦</span>Thought</button>
+      <button id="tb-list"><span class="ic">☰</span>List</button>
       <button id="tb-image"><span class="ic">▣</span>Image</button>
       <button id="tb-link"><span class="ic">⌘</span>Link</button>
       <button id="tb-center"><span class="ic">◎</span>Center</button>
@@ -279,10 +347,21 @@ input,textarea{font-family:inherit;color:inherit}
       <button data-act="note" title="Open note">Note</button>
       <button data-act="child" title="Add connected thought (Tab)">＋ Branch</button>
       <button data-act="connect" title="Draw connection">Connect</button>
+      <button data-act="task" title="Make this a checkable task">✓ Task</button>
+      <button data-act="submap" title="Give this thought its own map">◈ Map</button>
+      <button data-act="focus" title="Focus on this thought (F)">◉</button>
+      <span class="sep"></span>
+      <button class="sw" data-color="" title="No color"></button>
+      <button class="sw" data-color="rose"></button>
+      <button class="sw" data-color="amber"></button>
+      <button class="sw" data-color="sage"></button>
+      <button class="sw" data-color="sky"></button>
+      <button class="sw" data-color="lilac"></button>
       <span class="sep"></span>
       <button data-act="delete" title="Delete (⌫)">✕</button>
     </div>
     <div id="drop-hint" class="hidden">Drop image to add it to your map</div>
+    <button id="fab" title="New thought">✦</button>
     <div id="ro-banner" class="hidden">Read-only map shared with Atlas <a href="#" id="ro-try">Make your own →</a></div>
   </div>
 
@@ -413,27 +492,52 @@ function centerView(animate){
 }
 $("#tb-center").onclick = () => centerView(true);
 
-/* -------- background pan + dbl-click create -------- */
-let panState = null;
+/* -------- background pan + pinch + dbl-click create -------- */
+let panState = null, pinch = null;
+const tpts = new Map();
 stage.addEventListener("pointerdown", e => {
   if (e.target !== stage && !e.target.closest("#viewport")) return;
   if (e.target.closest(".node") || e.target.closest("#edges")) return;
   if (connectFrom) { endConnect(null); return; }
   deselect();
+  tpts.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  stage.setPointerCapture(e.pointerId);
+  if (tpts.size === 2) {
+    const [a, b] = [...tpts.values()];
+    const r = stage.getBoundingClientRect();
+    const mid = {x: (a.x+b.x)/2 - r.left, y: (a.y+b.y)/2 - r.top};
+    pinch = { d0: Math.hypot(a.x-b.x, a.y-b.y), w0: {x: (mid.x-cam.x)/cam.z, y: (mid.y-cam.y)/cam.z}, z0: cam.z };
+    panState = null;
+    return;
+  }
   panState = { sx: e.clientX, sy: e.clientY, cx: cam.x, cy: cam.y, moved: false };
   stage.classList.add("panning");
-  stage.setPointerCapture(e.pointerId);
 });
 stage.addEventListener("pointermove", e => {
+  if (tpts.has(e.pointerId)) tpts.set(e.pointerId, {x: e.clientX, y: e.clientY});
   if (connectFrom) { drawTempLink(e); return; }
+  if (pinch && tpts.size >= 2) {
+    const [a, b] = [...tpts.values()];
+    const r = stage.getBoundingClientRect();
+    const mid = {x: (a.x+b.x)/2 - r.left, y: (a.y+b.y)/2 - r.top};
+    const d = Math.hypot(a.x-b.x, a.y-b.y);
+    cam.z = clamp(pinch.z0 * d / pinch.d0, 0.12, 3.5);
+    cam.x = mid.x - pinch.w0.x * cam.z;
+    cam.y = mid.y - pinch.w0.y * cam.z;
+    applyCam(); return;
+  }
   if (!panState) return;
   const dx = e.clientX - panState.sx, dy = e.clientY - panState.sy;
   if (Math.abs(dx)+Math.abs(dy) > 3) panState.moved = true;
   cam.x = panState.cx + dx; cam.y = panState.cy + dy; applyCam();
 });
-stage.addEventListener("pointerup", e => {
+const endPointer = e => {
+  tpts.delete(e.pointerId);
+  if (pinch && tpts.size < 2) pinch = null;
   if (panState) { stage.classList.remove("panning"); panState = null; }
-});
+};
+stage.addEventListener("pointerup", endPointer);
+stage.addEventListener("pointercancel", endPointer);
 stage.addEventListener("dblclick", e => {
   if (readOnly) return;
   if (e.target.closest(".node") || e.target.closest("#toolbar") || e.target.closest("#zoombar") || e.target.closest("#node-tools") || e.target.closest("#maptitle") || e.target.closest("#topright")) return;
@@ -462,8 +566,10 @@ function renderNode(n){
     bindNode(el);
   }
   el.dataset.kind = n.kind || "";
+  el.dataset.c = n.color || "";
   el.classList.toggle("img-node", !!n.img);
   el.classList.toggle("done", !!n.done);
+  el.classList.toggle("has-map", !!n.mapLink);
   const kindLabel = {task:"Task",question:"Question",person:"Person",decision:"Decision",memory:"Memory"}[n.kind]||"";
   let inner = `<span class="badge">${kindLabel}</span>`;
   if (n.img) inner += `<img class="nimg" src="${n.img}" alt="" draggable="false">`;
@@ -471,6 +577,7 @@ function renderNode(n){
   if (n.note && !n.img) inner += `<div class="preview">${esc(n.note.slice(0,140))}</div>`;
   if (n.url) { let host=""; try{host=new URL(n.url).hostname.replace("www.","");}catch(e){host=n.url.slice(0,30);}
     inner += `<div class="linkrow">⌘ <a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(host)}</a></div>`; }
+  if (n.mapLink && !readOnly) inner += `<div class="maprow"><button class="maplink-open">◈ Open map</button></div>`;
   inner += `<div class="done-toggle">✓</div><div class="handle" title="Drag to connect"></div>`;
   el.innerHTML = inner;
   el.style.left = n.x + "px"; el.style.top = n.y + "px";
@@ -483,10 +590,16 @@ function bindNode(el){
     const id = el.dataset.id;
     if (e.target.classList.contains("handle")) { if(!readOnly){ startConnect(id, e); } e.stopPropagation(); return; }
     if (e.target.classList.contains("done-toggle")) {
-      if(!readOnly){ map.nodes[id].done = !map.nodes[id].done; renderNode(map.nodes[id]); save(); }
+      if(!readOnly){ map.nodes[id].done = !map.nodes[id].done; renderNode(map.nodes[id]); save(); updateTaskCount(); }
       e.stopPropagation(); return;
     }
     if (e.target.tagName === "A") return;
+    if (e.target.classList.contains("maplink-open")) {
+      e.stopPropagation();
+      const ml = map.nodes[id].mapLink;
+      if (ml && store.maps[ml]) openMap(ml); else toast("That map no longer exists");
+      return;
+    }
     if (connectFrom) { endConnect(id); e.stopPropagation(); return; }
     e.stopPropagation();
     if (readOnly) { select(id); return; }
@@ -510,9 +623,10 @@ function bindNode(el){
   });
   el.addEventListener("dblclick", e => {
     e.stopPropagation();
-    if (readOnly) { openNote(el.dataset.id); return; }
     if (e.target.tagName === "A") return;
-    editTitle(el.dataset.id);
+    const id = el.dataset.id, n = map.nodes[id];
+    if (!readOnly && n && n.mapLink && store.maps[n.mapLink]) { openMap(n.mapLink); return; }
+    openNote(id);
   });
 }
 
@@ -612,15 +726,15 @@ const tools = $("#node-tools");
 function select(id){
   selected = id;
   $$(".node").forEach(el => el.classList.toggle("selected", el.dataset.id === id));
-  drawEdges();
+  drawEdges(); applyFocus();
   if (readOnly) { openNote(id); return; }
   tools.classList.remove("hidden"); positionTools();
   if (notePanelId) openNote(id);
 }
 function deselect(){
-  selected = null;
+  selected = null; focusMode = false;
   $$(".node.selected").forEach(el => el.classList.remove("selected"));
-  tools.classList.add("hidden"); drawEdges();
+  tools.classList.add("hidden"); drawEdges(); applyFocus();
 }
 function positionTools(){
   if (!selected || tools.classList.contains("hidden")) return;
@@ -633,12 +747,42 @@ function positionTools(){
 tools.addEventListener("pointerdown", e => e.stopPropagation());
 tools.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !selected) return;
+  const n = map.nodes[selected];
+  if (b.classList.contains("sw")) {
+    n.color = b.dataset.color || "";
+    renderNode(n); save(); return;
+  }
   const act = b.dataset.act;
   if (act === "note") openNote(selected);
   if (act === "child") branchFrom(selected);
   if (act === "connect") { connectFrom = selected; toast("Click another thought to connect — Esc to cancel"); }
+  if (act === "task") {
+    n.kind = n.kind === "task" ? "" : "task";
+    if (n.kind !== "task") n.done = false;
+    renderNode(n); save(); syncNotePanel(); updateTaskCount();
+  }
+  if (act === "submap") {
+    if (n.mapLink && store.maps[n.mapLink]) { openMap(n.mapLink); return; }
+    const m = blankMap(n.title || "Untitled map");
+    store.maps[m.id] = m; store.order.push(m.id);
+    n.mapLink = m.id;
+    renderNode(n); renderMapList(); save();
+    toast("Sub-map created — double-click the node to enter it");
+  }
+  if (act === "focus") toggleFocus();
   if (act === "delete") deleteNode(selected);
 });
+
+/* -------- focus mode -------- */
+let focusMode = false;
+function toggleFocus(){ focusMode = !focusMode; applyFocus(); if (focusMode) toast("Focus — Esc to see everything"); }
+function applyFocus(){
+  const on = focusMode && !!selected;
+  stage.classList.toggle("focusing", on);
+  const neigh = new Set();
+  if (on) map.edges.forEach(e => { if (e.from===selected) neigh.add(e.to); if (e.to===selected) neigh.add(e.from); });
+  $$(".node").forEach(el => el.classList.toggle("fneighbor", neigh.has(el.dataset.id)));
+}
 
 /* ============================ KEYBOARD ============================ */
 document.addEventListener("keydown", e => {
@@ -656,6 +800,7 @@ document.addEventListener("keydown", e => {
   else if (e.key === "Enter" && selected) { e.preventDefault(); editTitle(selected); }
   else if ((e.key === "Backspace" || e.key === "Delete") && selected) { e.preventDefault(); deleteNode(selected); }
   else if (e.key.toLowerCase() === "n" && selected) { e.preventDefault(); openNote(selected); }
+  else if (e.key.toLowerCase() === "f" && selected) { e.preventDefault(); toggleFocus(); }
   else if (e.key.toLowerCase() === "t") { e.preventDefault(); newThoughtCenter(); }
 });
 
@@ -702,7 +847,7 @@ const npBind = (sel, field) => { $(sel).addEventListener("input", () => {
 npBind("#np-title","title"); npBind("#np-note","note"); npBind("#np-link","url");
 $("#np-kind").addEventListener("change", () => {
   if (readOnly || !notePanelId) return; const n = map.nodes[notePanelId];
-  n.kind = $("#np-kind").value; renderNode(n); save();
+  n.kind = $("#np-kind").value; renderNode(n); save(); updateTaskCount();
 });
 $("#np-linkgo").onclick = () => { const u = $("#np-link").value.trim(); if (u) window.open(u.startsWith("http")?u:"https://"+u, "_blank"); };
 
@@ -788,6 +933,56 @@ $("#tb-link").onclick = () => {
   });
 };
 
+/* ============================ LIST BUILDER ============================ */
+$("#tb-list").onclick = () => {
+  if (readOnly) return;
+  const ov = document.createElement("div"); ov.id = "overlay";
+  ov.innerHTML = `<div class="modal"><h3>Turn a list into a map</h3>
+    <p>First line is the list name. Every other line becomes a checkable thought, already connected.</p>
+    <textarea placeholder="Birthday dinner&#10;Book restaurant&#10;Invite everyone&#10;Order the cake&#10;Buy a gift"></textarea>
+    <div class="row" style="justify-content:flex-end"><button class="primary">Create</button><button class="plain">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+  const ta = $("textarea", ov); ta.focus();
+  ta.onkeydown = e => e.stopPropagation();
+  const done = () => ov.remove();
+  $(".plain", ov).onclick = done;
+  ov.onclick = e => { if (e.target === ov) done(); };
+  $(".primary", ov).onclick = () => {
+    const lines = ta.value.split("\n").map(s => s.trim()).filter(Boolean);
+    done();
+    if (!lines.length) return;
+    const title = lines.shift();
+    const r = stage.getBoundingClientRect(); const p = toWorld(r.left+r.width/2, r.top+r.height/2);
+    const parent = createNode(p.x - 280, p.y - 20, title);
+    lines.forEach((t, i) => {
+      const child = createNode(p.x + 40, p.y + i*76 - (lines.length-1)*38, t, false, {kind:"task"});
+      map.edges.push({id: uid(), from: parent.id, to: child.id});
+    });
+    drawEdges(); save(); updateTaskCount();
+    setTimeout(() => centerView(true), 60);
+    toast(`“${title}” is on the map — check things off as you go`);
+  };
+};
+
+/* ============================ TASKS VIEW ============================ */
+function openTasks(){
+  const box = $("#search-results");
+  const hits = [];
+  store.order.forEach(mid => {
+    const m = store.maps[mid]; if (!m) return;
+    Object.values(m.nodes).forEach(n => { if (n.kind === "task" && !n.done) hits.push({m, n}); });
+  });
+  box.innerHTML = hits.length
+    ? hits.slice(0, 50).map(h => `<div class="sr-item" data-map="${h.m.id}" data-node="${h.n.id}"><span class="chk"></span><b>${esc(h.n.title||"Untitled")}</b><span class="in">in ${esc(h.m.name)}</span></div>`).join("")
+    : `<div class="sr-item">Nothing to do — nice. ✦</div>`;
+}
+function updateTaskCount(){
+  let c = 0;
+  Object.values(store.maps).forEach(m => Object.values(m.nodes).forEach(n => { if (n.kind==="task" && !n.done) c++; }));
+  $("#task-count").textContent = c || "";
+}
+$("#btn-tasks").onclick = openTasks;
+
 /* ============================ SEARCH ============================ */
 $("#search-input").addEventListener("input", () => {
   const q = $("#search-input").value.trim().toLowerCase();
@@ -830,7 +1025,7 @@ $("#map-list").addEventListener("click", e => {
       store.order = store.order.filter(x => x !== item.dataset.id);
       if (SUPA_ENABLED && cloud.user) cloud.deleteMap(item.dataset.id);
       if (map && map.id === item.dataset.id) {
-        if (store.order.length) openMap(store.order[0]); else newMap();
+        if (store.order.length) openMap(store.order[0]); else newMap(true);
       }
       renderMapList(); save();
     }
@@ -838,13 +1033,44 @@ $("#map-list").addEventListener("click", e => {
   }
   openMap(item.dataset.id);
 });
-function newMap(){
-  const m = blankMap();
+const TEMPLATES = [
+  {id:"blank", name:"Blank canvas", desc:"A quiet empty page. Recommended.", nodes:[], edges:[]},
+  {id:"trip",  name:"Trip plan",    desc:"Places, food, budget, packing.",
+    nodes:[[0,60,"Trip to …",""],[300,-80,"Places to see",""],[320,10,"Where we sleep","question"],[310,100,"Food to try",""],[300,200,"Book tickets","task"],[-40,220,"Packing list","task"]],
+    edges:[[0,1],[0,2],[0,3],[0,4],[0,5]]},
+  {id:"project", name:"Project kickoff", desc:"Goal, first steps, people, risks.",
+    nodes:[[0,60,"Project: …",""],[310,-70,"What does done look like?","question"],[320,30,"First three steps","task"],[310,130,"Who's involved","person"],[-30,230,"What could go wrong","decision"]],
+    edges:[[0,1],[0,2],[0,3],[0,4]]},
+  {id:"weekly", name:"Weekly review", desc:"Went well, didn't, learned, next.",
+    nodes:[[0,60,"This week",""],[300,-70,"What went well",""],[320,20,"What didn't",""],[310,110,"What I learned","memory"],[300,210,"Next week I will…","task"]],
+    edges:[[0,1],[0,2],[0,3],[0,4]]},
+  {id:"brainstorm", name:"Brainstorm", desc:"One big question, room to think.",
+    nodes:[[0,60,"What if …?","question"],[320,-40,"Wild idea",""],[330,60,"Safe idea",""],[320,160,"How would someone else see it?","question"]],
+    edges:[[0,1],[0,2],[0,3]]}
+];
+function newMap(blank){
+  if (blank) { instantiateTemplate(TEMPLATES[0]); return; }
+  const ov = document.createElement("div"); ov.id = "overlay";
+  ov.innerHTML = `<div class="modal"><h3>New map</h3>
+    <p>Start empty, or with a gentle head start.</p>
+    <div class="tpl-grid">${TEMPLATES.map(t => `<button class="tpl" data-id="${t.id}"><b>${t.name}</b><span>${t.desc}</span></button>`).join("")}</div></div>`;
+  document.body.appendChild(ov);
+  ov.onclick = e => {
+    if (e.target === ov) { ov.remove(); return; }
+    const b = e.target.closest(".tpl"); if (!b) return;
+    ov.remove();
+    instantiateTemplate(TEMPLATES.find(t => t.id === b.dataset.id));
+  };
+}
+function instantiateTemplate(tpl){
+  const m = blankMap(tpl.id === "blank" ? "Untitled map" : tpl.name);
+  const made = tpl.nodes.map(([x,y,title,kind]) => { const n = blankNode(x,y,title); n.kind = kind||""; m.nodes[n.id] = n; return n; });
+  tpl.edges.forEach(([a,b]) => m.edges.push({id: uid(), from: made[a].id, to: made[b].id}));
   store.maps[m.id] = m; store.order.unshift(m.id);
   openMap(m.id); save();
-  setTimeout(() => { $("#map-name").focus(); $("#map-name").select(); }, 80);
+  setTimeout(() => { centerView(false); $("#map-name").focus(); $("#map-name").select(); }, 80);
 }
-$("#btn-new-map").onclick = newMap;
+$("#btn-new-map").onclick = () => newMap(false);
 function openMap(id){
   const m = store.maps[id]; if (!m) return;
   map = m; store.lastMap = id;
@@ -1022,6 +1248,22 @@ $("#auth-send").onclick = async () => {
   } catch(e){ console.error(e); toast("Couldn't send link: " + (e.message||"error")); }
 };
 
+/* ============================ THEME ============================ */
+const THEMES = [["","Paper"],["ink","Ink"],["dusk","Dusk"]];
+function applyTheme(t){
+  if (t) document.body.dataset.theme = t; else delete document.body.dataset.theme;
+  const th = THEMES.find(x => x[0] === t) || THEMES[0];
+  $("#theme-name").textContent = th[1];
+  const mc = document.querySelector('meta[name="theme-color"]');
+  if (mc) mc.content = t === "ink" ? "#161719" : t === "dusk" ? "#f2edf6" : "#faf8f3";
+  try { localStorage.setItem("atlas.theme", t); } catch(e){}
+}
+$("#btn-theme").onclick = () => {
+  const cur = document.body.dataset.theme || "";
+  const i = THEMES.findIndex(x => x[0] === cur);
+  applyTheme(THEMES[(i+1) % THEMES.length][0]);
+};
+
 /* ============================ BOOT ============================ */
 function enterApp(){
   $("#landing").classList.add("hidden");
@@ -1032,9 +1274,14 @@ function enterApp(){
   }
   openMap(store.maps[store.lastMap] ? store.lastMap : store.order[0]);
   store.seenLanding = true; save(false);
+  updateTaskCount();
 }
 function boot(){
   loadStore();
+  try { applyTheme(localStorage.getItem("atlas.theme") || ""); } catch(e){}
+  $("#fab").onclick = newThoughtCenter;
+  if ("serviceWorker" in navigator && location.protocol === "https:")
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
   const params = new URLSearchParams(location.search);
   if (params.get("s") && SUPA_ENABLED) { $("#app").classList.remove("hidden"); loadSharedMap(params.get("s")); return; }
   cloud.init();
