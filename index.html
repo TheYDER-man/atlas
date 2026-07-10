@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Atlas — Map your thoughts</title>
+<meta name="description" content="Atlas turns scattered thoughts into a living map. Notes, images, links and ideas in one connected visual space.">
+<style>
+:root{
+  --paper:#faf8f3; --paper2:#f3f0e8; --ink:#2b2926; --ink2:#6b6659; --ink3:#a39d8c;
+  --line:#e5e0d3; --accent:#5a5ad0; --accent-soft:#eaeaf9; --warm:#c97b3d;
+  --card:#ffffff; --shadow:0 1px 3px rgba(43,41,38,.08),0 8px 24px rgba(43,41,38,.07);
+  --shadow-lg:0 4px 12px rgba(43,41,38,.1),0 20px 48px rgba(43,41,38,.14);
+  --r:12px; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:var(--sans);color:var(--ink);background:var(--paper)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font-family:inherit;color:inherit}
+::selection{background:var(--accent-soft)}
+.hidden{display:none!important}
+
+/* ---------- Landing ---------- */
+#landing{position:fixed;inset:0;z-index:100;background:
+  radial-gradient(1200px 700px at 70% -10%,#efeafd 0%,rgba(250,248,243,0) 55%),
+  radial-gradient(900px 600px at 10% 110%,#fdf0e3 0%,rgba(250,248,243,0) 50%),
+  var(--paper);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:auto}
+#landing .logo{font-family:var(--serif);font-size:22px;letter-spacing:.04em;position:absolute;top:28px;left:36px;display:flex;align-items:center;gap:10px}
+#landing .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+#landing h1{font-family:var(--serif);font-weight:500;font-size:clamp(38px,6vw,64px);line-height:1.12;max-width:14em}
+#landing h1 em{font-style:normal;color:var(--accent)}
+#landing p.sub{margin-top:18px;font-size:clamp(16px,2vw,19px);color:var(--ink2);max-width:34em;line-height:1.6}
+#landing .cta{margin-top:34px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#landing .cta .primary{background:var(--ink);color:var(--paper);padding:14px 30px;border-radius:999px;font-size:16px;font-weight:600;transition:transform .15s,box-shadow .15s;box-shadow:var(--shadow)}
+#landing .cta .primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+#landing .cta .ghost{padding:14px 24px;border-radius:999px;font-size:15px;color:var(--ink2);border:1px solid var(--line);background:rgba(255,255,255,.6)}
+#landing .cta .ghost:hover{border-color:var(--ink3)}
+#landing .mini{margin-top:60px;color:var(--ink3);font-size:13px;letter-spacing:.02em}
+#landing .peek{margin-top:44px;width:min(760px,92vw);border-radius:18px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow-lg);padding:10px;pointer-events:none}
+#landing .peek svg{display:block;width:100%;height:auto;border-radius:10px;background:
+  radial-gradient(circle,#e9e4d6 1px,transparent 1px) 0 0/26px 26px,var(--paper)}
+
+/* ---------- App shell ---------- */
+#app{position:fixed;inset:0;display:flex}
+#sidebar{width:232px;min-width:232px;background:rgba(250,248,243,.92);backdrop-filter:blur(10px);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:40;transition:margin-left .25s ease}
+#sidebar.collapsed{margin-left:-232px}
+#sb-head{display:flex;align-items:center;gap:9px;padding:16px 16px 10px}
+#sb-head .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#sb-head .name{font-family:var(--serif);font-size:17px;letter-spacing:.03em}
+#sb-head .collapse{margin-left:auto;color:var(--ink3);font-size:15px;padding:4px 6px;border-radius:6px}
+#sb-head .collapse:hover{background:var(--paper2)}
+.sb-btn{display:flex;align-items:center;gap:10px;margin:2px 10px;padding:8px 10px;border-radius:8px;font-size:13.5px;color:var(--ink2);text-align:left;width:calc(100% - 20px)}
+.sb-btn:hover{background:var(--paper2);color:var(--ink)}
+.sb-btn .ic{width:16px;text-align:center;opacity:.75}
+#sb-search{margin:6px 10px;position:relative}
+#sb-search input{width:100%;padding:8px 10px 8px 30px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:13px;outline:none}
+#sb-search input:focus{border-color:var(--accent)}
+#sb-search .ic{position:absolute;left:10px;top:8px;color:var(--ink3);font-size:13px}
+#search-results{margin:2px 10px;max-height:40vh;overflow:auto}
+.sr-item{padding:7px 10px;border-radius:8px;font-size:12.5px;cursor:pointer;color:var(--ink2)}
+.sr-item:hover{background:var(--paper2)}
+.sr-item b{color:var(--ink);font-weight:600}
+.sr-item .in{display:block;font-size:10.5px;color:var(--ink3);margin-top:1px}
+#sb-maps{flex:1;overflow-y:auto;padding:4px 0 8px}
+.sb-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);padding:14px 20px 6px}
+.map-item{display:flex;align-items:center;gap:8px;margin:1px 10px;padding:7px 10px;border-radius:8px;font-size:13.5px;color:var(--ink2);cursor:pointer;position:relative}
+.map-item:hover{background:var(--paper2)}
+.map-item.active{background:var(--accent-soft);color:var(--ink);font-weight:500}
+.map-item .ic{opacity:.6;font-size:12px}
+.map-item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.map-item .del{opacity:0;color:var(--ink3);font-size:12px;padding:2px 5px;border-radius:5px}
+.map-item:hover .del{opacity:1}
+.map-item .del:hover{color:#c0392b;background:#fff}
+#sb-foot{border-top:1px solid var(--line);padding:10px}
+#sync-status{font-size:11px;color:var(--ink3);padding:4px 10px 8px;line-height:1.5}
+#sb-auth .sb-btn{border:1px solid var(--line);background:#fff;justify-content:center}
+#auth-form{padding:4px 10px 8px}
+#auth-form input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none;margin-bottom:6px;background:#fff}
+#auth-form .go{width:100%;background:var(--ink);color:#fff;padding:8px;border-radius:8px;font-size:13px;font-weight:600}
+#auth-form .note{font-size:11px;color:var(--ink3);margin-top:6px;line-height:1.5}
+
+/* ---------- Canvas ---------- */
+#stage{flex:1;position:relative;overflow:hidden;background:
+  radial-gradient(circle,#e7e2d4 1.1px,transparent 1.1px) 0 0/26px 26px,var(--paper)}
+#stage.panning{cursor:grabbing}
+#viewport{position:absolute;inset:0}
+#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#edges path{stroke:#c9c2b0;stroke-width:2;fill:none}
+#edges path.hl{stroke:var(--accent);opacity:.85}
+#edges .edge-hit{stroke:transparent;stroke-width:14;fill:none;pointer-events:stroke;cursor:pointer}
+#templink{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#templink path{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 5;fill:none}
+
+/* ---------- Nodes ---------- */
+.node{position:absolute;min-width:120px;max-width:260px;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 13px;cursor:grab;user-select:none;transition:box-shadow .15s,border-color .15s}
+.node:hover{box-shadow:var(--shadow-lg)}
+.node.selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow-lg)}
+.node.dragging{cursor:grabbing;opacity:.92}
+.node.flash{animation:flash 1.2s ease}
+@keyframes flash{0%,60%{box-shadow:0 0 0 6px rgba(90,90,208,.35),var(--shadow-lg)}100%{box-shadow:var(--shadow)}}
+.node .title{font-size:13.5px;line-height:1.4;font-weight:500;word-wrap:break-word;outline:none;min-height:18px}
+.node .title:empty:before{content:"New thought";color:var(--ink3)}
+.node .preview{font-size:11.5px;color:var(--ink2);margin-top:5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.node .linkrow{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;color:var(--accent);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.node .linkrow a{color:inherit;text-decoration:none}
+.node .linkrow a:hover{text-decoration:underline}
+.node img.nimg{display:block;width:100%;border-radius:8px;margin:-2px 0 6px;pointer-events:none}
+.node.img-node{padding:8px;max-width:300px}
+.node.img-node .title{font-size:12px;color:var(--ink2);font-weight:400;padding:2px 4px 0}
+.node .badge{position:absolute;top:-8px;left:12px;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent);color:#fff;padding:2px 8px;border-radius:999px;display:none}
+.node[data-kind]:not([data-kind=""]) .badge{display:block}
+.node[data-kind="task"] .badge{background:#3d8b6b}.node[data-kind="question"] .badge{background:#c97b3d}
+.node[data-kind="person"] .badge{background:#8a5ac0}.node[data-kind="decision"] .badge{background:#b04a5a}
+.node[data-kind="memory"] .badge{background:#4a7ab0}
+.node .handle{position:absolute;right:-9px;top:50%;margin-top:-9px;width:18px;height:18px;border-radius:50%;background:var(--accent);border:2.5px solid #fff;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;cursor:crosshair;box-shadow:var(--shadow)}
+.node:hover .handle,.node.selected .handle{opacity:1;transform:scale(1)}
+.node .done-toggle{position:absolute;left:-9px;top:50%;margin-top:-9px;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #3d8b6b;display:none;align-items:center;justify-content:center;font-size:10px;color:#3d8b6b}
+.node[data-kind="task"] .done-toggle{display:flex}
+.node.done .title{text-decoration:line-through;color:var(--ink3)}
+.node.done .done-toggle{background:#3d8b6b;color:#fff}
+
+/* node toolbar */
+#node-tools{position:absolute;display:flex;gap:2px;background:var(--ink);border-radius:10px;padding:4px;box-shadow:var(--shadow-lg);z-index:30;transform:translate(-50%,-100%);margin-top:-12px}
+#node-tools button{color:#f0ede4;font-size:12px;padding:5px 9px;border-radius:7px;white-space:nowrap}
+#node-tools button:hover{background:rgba(255,255,255,.15)}
+#node-tools .sep{width:1px;background:rgba(255,255,255,.2);margin:3px 2px}
+
+/* ---------- Canvas toolbar ---------- */
+#toolbar{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:var(--shadow-lg);z-index:35}
+#toolbar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 14px;border-radius:9px;font-size:11px;color:var(--ink2)}
+#toolbar button .ic{font-size:16px}
+#toolbar button:hover{background:var(--paper2);color:var(--ink)}
+#zoombar{position:absolute;bottom:22px;right:18px;display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:var(--shadow);z-index:35;font-size:12px;color:var(--ink2)}
+#zoombar button{padding:5px 9px;border-radius:7px;font-size:14px}
+#zoombar button:hover{background:var(--paper2)}
+#zoombar .pct{min-width:44px;text-align:center;cursor:pointer}
+#maptitle{position:absolute;top:14px;left:16px;z-index:35;display:flex;align-items:center;gap:8px}
+#maptitle input{font-family:var(--serif);font-size:17px;background:transparent;border:none;outline:none;color:var(--ink);padding:6px 10px;border-radius:8px;max-width:40vw}
+#maptitle input:hover,#maptitle input:focus{background:rgba(255,255,255,.8);box-shadow:var(--shadow)}
+#sb-open{z-index:36;position:absolute;top:16px;left:-40px;width:0;overflow:hidden;transition:all .25s;color:var(--ink2);font-size:15px}
+#sidebar.collapsed ~ #stage #sb-open{position:absolute;left:12px;width:auto;background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:8px;padding:6px 10px;box-shadow:var(--shadow)}
+#topright{position:absolute;top:14px;right:16px;z-index:35;display:flex;gap:8px}
+#topright button{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--ink2);box-shadow:var(--shadow)}
+#topright button:hover{color:var(--ink);border-color:var(--ink3)}
+#topright #btn-share{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ---------- Note panel ---------- */
+#notepanel{width:0;min-width:0;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;transition:width .22s ease,min-width .22s ease;overflow:hidden;z-index:38}
+#notepanel.open{width:380px;min-width:380px}
+#np-inner{width:380px;display:flex;flex-direction:column;height:100%}
+#np-head{display:flex;align-items:center;gap:6px;padding:14px 16px 6px}
+#np-head .kind{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--ink2);background:var(--paper);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none}
+#np-head .close{margin-left:auto;color:var(--ink3);font-size:16px;padding:4px 8px;border-radius:6px}
+#np-head .close:hover{background:var(--paper2)}
+#np-title{font-family:var(--serif);font-size:21px;padding:6px 20px 2px;border:none;outline:none;width:100%;background:transparent;font-weight:500}
+#np-img{padding:8px 20px 0}
+#np-img img{width:100%;border-radius:10px;box-shadow:var(--shadow)}
+#np-linkwrap{padding:8px 20px 0;display:flex;gap:6px;align-items:center}
+#np-link{flex:1;font-size:12.5px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;outline:none;color:var(--accent);background:var(--paper)}
+#np-link:focus{border-color:var(--accent)}
+#np-linkgo{font-size:13px;color:var(--ink2);padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+#np-note{flex:1;resize:none;border:none;outline:none;padding:14px 20px 20px;font-size:14px;line-height:1.7;color:var(--ink);background:transparent}
+#np-note::placeholder{color:var(--ink3)}
+#np-meta{padding:10px 20px;border-top:1px solid var(--line);font-size:11px;color:var(--ink3);display:flex;justify-content:space-between;align-items:center}
+#np-connections{padding:0 20px 8px;font-size:12px;color:var(--ink2)}
+#np-connections .conn{display:inline-block;background:var(--paper2);border-radius:999px;padding:3px 10px;margin:2px 3px 2px 0;cursor:pointer;font-size:11.5px}
+#np-connections .conn:hover{background:var(--accent-soft);color:var(--accent)}
+
+/* ---------- Modals & toasts ---------- */
+#overlay{position:fixed;inset:0;background:rgba(43,41,38,.4);z-index:90;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal{background:#fff;border-radius:16px;box-shadow:var(--shadow-lg);padding:26px;width:min(430px,92vw)}
+.modal h3{font-family:var(--serif);font-size:20px;font-weight:500;margin-bottom:8px}
+.modal p{font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px}
+.modal .row{display:flex;gap:8px}
+.modal input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;outline:none}
+.modal .primary{background:var(--ink);color:#fff;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600}
+.modal .plain{color:var(--ink2);padding:10px 12px;font-size:13px}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:999px;font-size:13px;box-shadow:var(--shadow-lg);z-index:99;opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* read-only banner */
+#ro-banner{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:36;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:999px;padding:8px 18px;font-size:12.5px;color:var(--ink2);box-shadow:var(--shadow);display:flex;gap:12px;align-items:center}
+#ro-banner a{color:var(--accent);text-decoration:none;font-weight:600}
+
+#drop-hint{position:absolute;inset:14px;border:2.5px dashed var(--accent);border-radius:20px;background:rgba(90,90,208,.06);z-index:50;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--accent);pointer-events:none}
+
+@media (max-width:720px){
+  #notepanel.open{position:absolute;right:0;top:0;bottom:0;width:min(380px,92vw);min-width:0;box-shadow:var(--shadow-lg)}
+  #sidebar{position:absolute;top:0;bottom:0;box-shadow:var(--shadow-lg)}
+  #landing .peek{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LANDING ================= -->
+<div id="landing" class="hidden">
+  <div class="logo"><span class="dot"></span>Atlas</div>
+  <h1>Map your thoughts.<br>Connect your notes.<br><em>See your ideas.</em></h1>
+  <p class="sub">Atlas is a living map for thoughts, notes, people, projects and memories. Every idea starts small, then grows — and stays connected to everything it belongs to.</p>
+  <div class="cta">
+    <button class="primary" id="btn-guest">Try as guest</button>
+    <button class="ghost" id="btn-landing-signin">Sign in</button>
+  </div>
+  <div class="peek">
+    <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#c9c2b0" stroke-width="2" fill="none">
+        <path d="M 240 110 C 300 110 300 70 355 70"/><path d="M 240 120 C 310 130 320 150 380 150"/>
+        <path d="M 240 125 C 290 170 300 215 350 218"/><path d="M 500 70 C 560 70 560 100 600 105"/>
+        <path d="M 495 150 C 545 155 560 190 590 195"/>
+      </g>
+      <g font-family="-apple-system,sans-serif">
+        <rect x="110" y="90" width="130" height="46" rx="12" fill="#fff" stroke="#5a5ad0" stroke-width="1.6"/>
+        <text x="128" y="118" font-size="14" font-weight="600" fill="#2b2926">Trip to Kyoto</text>
+        <rect x="355" y="48" width="145" height="42" rx="12" fill="#fff" stroke="#e5e0d3" stroke-width="1.5"/>
+        <text x="372" y="74" font-size="13" fill="#2b2926">Places to eat</text>
+        <rect x="380" y="130" width="115" height="42" rx="12" fill="#fff" stroke="#e5e0d3" stroke-width="1.5"/>
+        <text x="397" y="156" font-size="13" fill="#2b2926">Budget</text>
+        <rect x="350" y="196" width="150" height="44" rx="12" fill="#fff" stroke="#e5e0d3" stroke-width="1.5"/>
+        <text x="367" y="223" font-size="13" fill="#2b2926">Photo ideas 🌸</text>
+        <rect x="600" y="85" width="95" height="40" rx="12" fill="#fdf3ea" stroke="#c97b3d" stroke-width="1.5"/>
+        <text x="615" y="110" font-size="12" fill="#2b2926">Ryokan?</text>
+        <rect x="590" y="175" width="105" height="40" rx="12" fill="#eef7f2" stroke="#3d8b6b" stroke-width="1.5"/>
+        <text x="605" y="200" font-size="12" fill="#2b2926">Book flights</text>
+      </g>
+    </svg>
+  </div>
+  <div class="mini">No account needed · Your maps stay yours · Free</div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="hidden">
+  <div id="sidebar">
+    <div id="sb-head"><span class="dot"></span><span class="name">Atlas</span>
+      <button class="collapse" id="sb-collapse" title="Hide sidebar">⟨</button></div>
+    <button class="sb-btn" id="btn-new-thought"><span class="ic">✦</span>New thought</button>
+    <div id="sb-search"><span class="ic">⌕</span><input id="search-input" placeholder="Search everything…" autocomplete="off"></div>
+    <div id="search-results"></div>
+    <div id="sb-maps">
+      <div class="sb-label">Maps</div>
+      <div id="map-list"></div>
+      <button class="sb-btn" id="btn-new-map"><span class="ic">＋</span>New map</button>
+    </div>
+    <div id="sb-foot">
+      <div id="sync-status">Local only — your maps live in this browser.</div>
+      <div id="sb-auth"><button class="sb-btn" id="btn-signin">Sign in to sync</button></div>
+      <div id="auth-form" class="hidden">
+        <input id="auth-email" type="email" placeholder="you@email.com">
+        <button class="go" id="auth-send">Send magic link</button>
+        <div class="note">We'll email you a sign-in link. Your maps sync across devices once signed in.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stage">
+    <div id="viewport"><div id="world">
+      <svg id="edges"></svg>
+      <svg id="templink"></svg>
+      <div id="nodes"></div>
+    </div></div>
+    <button id="sb-open" title="Show sidebar">☰</button>
+    <div id="maptitle"><input id="map-name" value="Untitled map" spellcheck="false"></div>
+    <div id="topright">
+      <button id="btn-share">Share</button>
+    </div>
+    <div id="toolbar">
+      <button id="tb-thought"><span class="ic">✦</span>Thought</button>
+      <button id="tb-image"><span class="ic">▣</span>Image</button>
+      <button id="tb-link"><span class="ic">⌘</span>Link</button>
+      <button id="tb-center"><span class="ic">◎</span>Center</button>
+    </div>
+    <div id="zoombar">
+      <button id="z-out">−</button><span class="pct" id="z-pct" title="Reset zoom">100%</span><button id="z-in">＋</button>
+    </div>
+    <div id="node-tools" class="hidden">
+      <button data-act="note" title="Open note">Note</button>
+      <button data-act="child" title="Add connected thought (Tab)">＋ Branch</button>
+      <button data-act="connect" title="Draw connection">Connect</button>
+      <span class="sep"></span>
+      <button data-act="delete" title="Delete (⌫)">✕</button>
+    </div>
+    <div id="drop-hint" class="hidden">Drop image to add it to your map</div>
+    <div id="ro-banner" class="hidden">Read-only map shared with Atlas <a href="#" id="ro-try">Make your own →</a></div>
+  </div>
+
+  <div id="notepanel"><div id="np-inner">
+    <div id="np-head">
+      <select class="kind" id="np-kind">
+        <option value="">Thought</option><option value="task">Task</option><option value="question">Question</option>
+        <option value="person">Person</option><option value="decision">Decision</option><option value="memory">Memory</option>
+      </select>
+      <button class="close" id="np-close">✕</button>
+    </div>
+    <input id="np-title" placeholder="Untitled thought" spellcheck="false">
+    <div id="np-img" class="hidden"><img alt=""></div>
+    <div id="np-linkwrap"><input id="np-link" placeholder="Paste a link…" spellcheck="false"><button id="np-linkgo" title="Open link">↗</button></div>
+    <div id="np-connections"></div>
+    <textarea id="np-note" placeholder="Write more about this thought…&#10;&#10;The note stays tied to the idea it belongs to."></textarea>
+    <div id="np-meta"><span id="np-date"></span><span>Everything saves automatically</span></div>
+  </div></div>
+</div>
+
+<div id="toast"></div>
+<script>
+/* ============================================================
+   Atlas — a living map for thoughts.
+   Local-first. Optional Supabase sync + sharing.
+   ============================================================ */
+"use strict";
+
+/* ---- Supabase config (filled in at deploy time; app works fully without it) ---- */
+const SUPA_URL = "https://jxpabybybkthaydlwwup.supabase.co";
+const SUPA_KEY = "sb_publishable_qQZAlmaJD2Jnzzs-e6xRrw_K-K2cAlA";
+const SUPA_ENABLED = SUPA_URL.startsWith("https://");
+
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+const now = () => Date.now();
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const esc = s => (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ============================ STATE ============================ */
+let store = null;          // {maps:{id:map}, order:[ids], lastMap, seenLanding}
+let map = null;            // active map object
+let cam = {x:0, y:0, z:1}; // camera
+let selected = null;       // selected node id
+let readOnly = false;
+let connectFrom = null;    // node id while drawing a connection
+
+const blankMap = (name) => ({ id: uid(), name: name || "Untitled map", nodes: {}, edges: [], cam: {x:0,y:0,z:1}, created: now(), updated: now() });
+const blankNode = (x, y, title) => ({ id: uid(), x: Math.round(x), y: Math.round(y), title: title||"", note:"", url:"", img:"", kind:"", done:false, created: now() });
+
+function loadStore(){
+  try { store = JSON.parse(localStorage.getItem("atlas.store")); } catch(e){ store = null; }
+  if (!store || !store.maps) store = { maps: {}, order: [], lastMap: null, seenLanding: false };
+}
+let saveTimer = null, cloudTimer = null;
+function save(pushCloud = true){
+  if (readOnly) return;
+  if (map) map.updated = now();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem("atlas.store", JSON.stringify(store)); }
+    catch(e){ toast("Storage full — try removing large images"); }
+  }, 300);
+  if (pushCloud && SUPA_ENABLED && cloud.user && map) {
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(() => cloud.pushMap(map), 1800);
+  }
+}
+
+/* ============================ DEMO MAP ============================ */
+function makeDemoMap(){
+  const m = blankMap("My first map");
+  const mk = (x,y,t,extra) => { const n = Object.assign(blankNode(x,y,t), extra||{}); m.nodes[n.id] = n; return n; };
+  const a = mk(0, 0, "Start here ✦", {note:"Welcome to Atlas.\n\nThis canvas is your thinking space. Everything starts as a thought — and every thought can grow into a note, an image, a link, a task, or a whole branch of ideas.\n\nTry it:\n• Double-click anywhere to add a thought\n• Press Tab to branch a new connected thought\n• Drag from the purple dot to connect ideas\n• Drop an image straight onto the canvas"});
+  const b = mk(300, -120, "Double-click the canvas to add a thought");
+  const c = mk(320, -10, "Press Tab to branch ideas");
+  const d = mk(310, 100, "Open me as a note", {note:"Double-click a node to edit its title.\nSelect a node and hit “Note” (or press N) to write more — the note opens beside the map, so your thinking stays connected."});
+  const e = mk(60, 160, "Drop an image here 🖼", {kind:"memory"});
+  const f = mk(600, -60, "Connect ideas by dragging the dot", {kind:"question"});
+  m.edges.push({id:uid(), from:a.id, to:b.id}, {id:uid(), from:a.id, to:c.id}, {id:uid(), from:a.id, to:d.id}, {id:uid(), from:a.id, to:e.id}, {id:uid(), from:c.id, to:f.id});
+  m.cam = {x: 260, y: 260, z: 1};
+  return m;
+}
+
+/* ============================ CANVAS ENGINE ============================ */
+const stage = $("#stage"), world = $("#world"), nodesEl = $("#nodes"), edgesEl = $("#edges"), templink = $("#templink");
+
+function applyCam(){
+  world.style.transform = `translate(${cam.x}px,${cam.y}px) scale(${cam.z})`;
+  stage.style.backgroundPosition = `${cam.x}px ${cam.y}px`;
+  stage.style.backgroundSize = `${26*cam.z}px ${26*cam.z}px`;
+  $("#z-pct").textContent = Math.round(cam.z*100) + "%";
+  if (map) { map.cam = {...cam}; save(false); }
+}
+const toWorld = (sx, sy) => { const r = stage.getBoundingClientRect(); return { x:(sx - r.left - cam.x)/cam.z, y:(sy - r.top - cam.y)/cam.z }; };
+
+function zoomAt(sx, sy, factor){
+  const r = stage.getBoundingClientRect();
+  const wx = (sx - r.left - cam.x)/cam.z, wy = (sy - r.top - cam.y)/cam.z;
+  cam.z = clamp(cam.z * factor, 0.12, 3.5);
+  cam.x = sx - r.left - wx*cam.z; cam.y = sy - r.top - wy*cam.z;
+  applyCam();
+}
+stage.addEventListener("wheel", e => {
+  e.preventDefault();
+  if (e.ctrlKey || e.metaKey) { zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY*0.01)); }
+  else if (e.shiftKey) { cam.x -= e.deltaY; applyCam(); }
+  else { cam.x -= e.deltaX; cam.y -= e.deltaY; applyCam(); }
+}, {passive:false});
+$("#z-in").onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.left+r.width/2, r.top+r.height/2, 1.2); };
+$("#z-out").onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.left+r.width/2, r.top+r.height/2, 1/1.2); };
+$("#z-pct").onclick = () => { cam.z = 1; applyCam(); };
+
+function centerView(animate){
+  const ns = Object.values(map.nodes);
+  const r = stage.getBoundingClientRect();
+  if (!ns.length) { cam = {x: r.width/2, y: r.height/2, z: 1}; applyCam(); return; }
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  ns.forEach(n => { const el = nodeEls[n.id]; const w = el? el.offsetWidth:180, h = el? el.offsetHeight:60;
+    minX=Math.min(minX,n.x); minY=Math.min(minY,n.y); maxX=Math.max(maxX,n.x+w); maxY=Math.max(maxY,n.y+h); });
+  const pad = 90, bw = maxX-minX+pad*2, bh = maxY-minY+pad*2;
+  const z = clamp(Math.min(r.width/bw, r.height/bh), 0.15, 1.15);
+  const nx = (r.width - (maxX-minX)*z)/2 - minX*z, ny = (r.height - (maxY-minY)*z)/2 - minY*z;
+  if (animate) world.style.transition = "transform .35s ease";
+  cam = {x:nx, y:ny, z}; applyCam();
+  if (animate) setTimeout(() => world.style.transition = "", 380);
+}
+$("#tb-center").onclick = () => centerView(true);
+
+/* -------- background pan + dbl-click create -------- */
+let panState = null;
+stage.addEventListener("pointerdown", e => {
+  if (e.target !== stage && !e.target.closest("#viewport")) return;
+  if (e.target.closest(".node") || e.target.closest("#edges")) return;
+  if (connectFrom) { endConnect(null); return; }
+  deselect();
+  panState = { sx: e.clientX, sy: e.clientY, cx: cam.x, cy: cam.y, moved: false };
+  stage.classList.add("panning");
+  stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener("pointermove", e => {
+  if (connectFrom) { drawTempLink(e); return; }
+  if (!panState) return;
+  const dx = e.clientX - panState.sx, dy = e.clientY - panState.sy;
+  if (Math.abs(dx)+Math.abs(dy) > 3) panState.moved = true;
+  cam.x = panState.cx + dx; cam.y = panState.cy + dy; applyCam();
+});
+stage.addEventListener("pointerup", e => {
+  if (panState) { stage.classList.remove("panning"); panState = null; }
+});
+stage.addEventListener("dblclick", e => {
+  if (readOnly) return;
+  if (e.target.closest(".node") || e.target.closest("#toolbar") || e.target.closest("#zoombar") || e.target.closest("#node-tools") || e.target.closest("#maptitle") || e.target.closest("#topright")) return;
+  const p = toWorld(e.clientX, e.clientY);
+  createNode(p.x - 70, p.y - 20, "", true);
+});
+
+/* ============================ NODES ============================ */
+const nodeEls = {};
+
+function createNode(x, y, title, edit, extra){
+  const n = Object.assign(blankNode(x, y, title), extra||{});
+  map.nodes[n.id] = n;
+  renderNode(n);
+  save();
+  if (edit) { select(n.id); editTitle(n.id); }
+  return n;
+}
+
+function renderNode(n){
+  let el = nodeEls[n.id];
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "node"; el.dataset.id = n.id;
+    nodeEls[n.id] = el; nodesEl.appendChild(el);
+    bindNode(el);
+  }
+  el.dataset.kind = n.kind || "";
+  el.classList.toggle("img-node", !!n.img);
+  el.classList.toggle("done", !!n.done);
+  const kindLabel = {task:"Task",question:"Question",person:"Person",decision:"Decision",memory:"Memory"}[n.kind]||"";
+  let inner = `<span class="badge">${kindLabel}</span>`;
+  if (n.img) inner += `<img class="nimg" src="${n.img}" alt="" draggable="false">`;
+  inner += `<div class="title" spellcheck="false">${esc(n.title)}</div>`;
+  if (n.note && !n.img) inner += `<div class="preview">${esc(n.note.slice(0,140))}</div>`;
+  if (n.url) { let host=""; try{host=new URL(n.url).hostname.replace("www.","");}catch(e){host=n.url.slice(0,30);}
+    inner += `<div class="linkrow">⌘ <a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(host)}</a></div>`; }
+  inner += `<div class="done-toggle">✓</div><div class="handle" title="Drag to connect"></div>`;
+  el.innerHTML = inner;
+  el.style.left = n.x + "px"; el.style.top = n.y + "px";
+  el.classList.toggle("selected", selected === n.id);
+}
+
+function bindNode(el){
+  let drag = null;
+  el.addEventListener("pointerdown", e => {
+    const id = el.dataset.id;
+    if (e.target.classList.contains("handle")) { if(!readOnly){ startConnect(id, e); } e.stopPropagation(); return; }
+    if (e.target.classList.contains("done-toggle")) {
+      if(!readOnly){ map.nodes[id].done = !map.nodes[id].done; renderNode(map.nodes[id]); save(); }
+      e.stopPropagation(); return;
+    }
+    if (e.target.tagName === "A") return;
+    if (connectFrom) { endConnect(id); e.stopPropagation(); return; }
+    e.stopPropagation();
+    if (readOnly) { select(id); return; }
+    if (e.target.isContentEditable) return;
+    const n = map.nodes[id];
+    drag = { sx: e.clientX, sy: e.clientY, nx: n.x, ny: n.y, moved: false };
+    el.setPointerCapture(e.pointerId);
+    el.classList.add("dragging");
+  });
+  el.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const n = map.nodes[el.dataset.id];
+    const dx = (e.clientX - drag.sx)/cam.z, dy = (e.clientY - drag.sy)/cam.z;
+    if (Math.abs(dx)+Math.abs(dy) > 2) drag.moved = true;
+    n.x = Math.round(drag.nx + dx); n.y = Math.round(drag.ny + dy);
+    el.style.left = n.x+"px"; el.style.top = n.y+"px";
+    drawEdges(); positionTools();
+  });
+  el.addEventListener("pointerup", e => {
+    if (drag) { el.classList.remove("dragging"); if (drag.moved) save(); else select(el.dataset.id); drag = null; }
+  });
+  el.addEventListener("dblclick", e => {
+    e.stopPropagation();
+    if (readOnly) { openNote(el.dataset.id); return; }
+    if (e.target.tagName === "A") return;
+    editTitle(el.dataset.id);
+  });
+}
+
+function editTitle(id){
+  const el = nodeEls[id]; if (!el) return;
+  const t = $(".title", el);
+  t.contentEditable = "plaintext-only";
+  try { t.focus(); } catch(e){}
+  if (t.contentEditable !== "plaintext-only") { t.contentEditable = "true"; t.focus(); }
+  document.execCommand && document.execCommand("selectAll", false, null);
+  const commit = () => {
+    t.contentEditable = "false";
+    const n = map.nodes[id]; if (!n) return;
+    n.title = t.textContent.trim();
+    renderNode(n); save(); syncNotePanel();
+  };
+  t.onblur = commit;
+  t.onkeydown = e => {
+    e.stopPropagation();
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); t.blur(); }
+    if (e.key === "Escape") { t.blur(); }
+    if (e.key === "Tab") { e.preventDefault(); t.blur(); branchFrom(id); }
+  };
+}
+
+function deleteNode(id){
+  const n = map.nodes[id]; if (!n) return;
+  delete map.nodes[id];
+  map.edges = map.edges.filter(e => e.from !== id && e.to !== id);
+  nodeEls[id] && nodeEls[id].remove(); delete nodeEls[id];
+  if (selected === id) deselect();
+  if (notePanelId === id) closeNote();
+  drawEdges(); save();
+}
+
+function branchFrom(id){
+  const p = map.nodes[id]; if (!p) return;
+  const el = nodeEls[id];
+  const w = el ? el.offsetWidth : 160;
+  const siblings = map.edges.filter(e => e.from === id).length;
+  const child = createNode(p.x + w + 90, p.y + siblings*80 - 20, "", true);
+  map.edges.push({id: uid(), from: id, to: child.id});
+  drawEdges(); save();
+  return child;
+}
+
+/* ============================ EDGES ============================ */
+function edgePath(a, b){
+  const ea = nodeEls[a.id], eb = nodeEls[b.id];
+  const aw = ea?ea.offsetWidth:160, ah = ea?ea.offsetHeight:50, bw = eb?eb.offsetWidth:160, bh = eb?eb.offsetHeight:50;
+  const ax = a.x + aw/2, ay = a.y + ah/2, bx = b.x + bw/2, by = b.y + bh/2;
+  const x1 = ax < bx ? a.x + aw : a.x, y1 = ay;
+  const x2 = ax < bx ? b.x : b.x + bw, y2 = by;
+  const dx = Math.max(40, Math.abs(x2-x1)*0.45);
+  const c1 = ax < bx ? x1+dx : x1-dx, c2 = ax < bx ? x2-dx : x2+dx;
+  return `M ${x1} ${y1} C ${c1} ${y1} ${c2} ${y2} ${x2} ${y2}`;
+}
+function drawEdges(){
+  let html = "";
+  map.edges.forEach(e => {
+    const a = map.nodes[e.from], b = map.nodes[e.to];
+    if (!a || !b) return;
+    const d = edgePath(a, b);
+    const hl = selected && (e.from===selected || e.to===selected) ? "hl" : "";
+    html += `<path class="${hl}" d="${d}"/><path class="edge-hit" data-eid="${e.id}" d="${d}"/>`;
+  });
+  edgesEl.innerHTML = html;
+}
+edgesEl.addEventListener("dblclick", e => {
+  if (readOnly) return;
+  const hit = e.target.closest(".edge-hit"); if (!hit) return;
+  map.edges = map.edges.filter(x => x.id !== hit.dataset.eid);
+  drawEdges(); save(); toast("Connection removed");
+});
+
+/* -------- interactive connect -------- */
+function startConnect(id, e){
+  connectFrom = id; drawTempLink(e);
+  toast("Click another thought to connect — Esc to cancel");
+}
+function drawTempLink(e){
+  if (!connectFrom) return;
+  const a = map.nodes[connectFrom]; if (!a) return;
+  const p = toWorld(e.clientX, e.clientY);
+  const el = nodeEls[a.id]; const aw = el?el.offsetWidth:160, ah = el?el.offsetHeight:50;
+  templink.innerHTML = `<path d="M ${a.x+aw} ${a.y+ah/2} C ${a.x+aw+60} ${a.y+ah/2} ${p.x-60} ${p.y} ${p.x} ${p.y}"/>`;
+}
+function endConnect(targetId){
+  if (targetId && targetId !== connectFrom && !map.edges.some(e => (e.from===connectFrom&&e.to===targetId)||(e.from===targetId&&e.to===connectFrom))) {
+    map.edges.push({id: uid(), from: connectFrom, to: targetId}); save();
+  }
+  connectFrom = null; templink.innerHTML = ""; drawEdges();
+}
+
+/* ============================ SELECTION & TOOLS ============================ */
+const tools = $("#node-tools");
+function select(id){
+  selected = id;
+  $$(".node").forEach(el => el.classList.toggle("selected", el.dataset.id === id));
+  drawEdges();
+  if (readOnly) { openNote(id); return; }
+  tools.classList.remove("hidden"); positionTools();
+  if (notePanelId) openNote(id);
+}
+function deselect(){
+  selected = null;
+  $$(".node.selected").forEach(el => el.classList.remove("selected"));
+  tools.classList.add("hidden"); drawEdges();
+}
+function positionTools(){
+  if (!selected || tools.classList.contains("hidden")) return;
+  const n = map.nodes[selected]; if (!n) return;
+  const el = nodeEls[selected]; const w = el?el.offsetWidth:160;
+  const r = stage.getBoundingClientRect();
+  tools.style.left = (n.x + w/2)*cam.z + cam.x + "px";
+  tools.style.top = n.y*cam.z + cam.y + "px";
+}
+tools.addEventListener("pointerdown", e => e.stopPropagation());
+tools.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || !selected) return;
+  const act = b.dataset.act;
+  if (act === "note") openNote(selected);
+  if (act === "child") branchFrom(selected);
+  if (act === "connect") { connectFrom = selected; toast("Click another thought to connect — Esc to cancel"); }
+  if (act === "delete") deleteNode(selected);
+});
+
+/* ============================ KEYBOARD ============================ */
+document.addEventListener("keydown", e => {
+  const typing = e.target.matches("input,textarea,[contenteditable],[contenteditable=true],[contenteditable=plaintext-only]") || e.target.isContentEditable;
+  if (e.key === "Escape") {
+    if (connectFrom) { endConnect(null); return; }
+    if (typing) { e.target.blur(); return; }
+    if (notePanelId) { closeNote(); return; }
+    deselect(); return;
+  }
+  if (typing || readOnly) return;
+  if ((e.metaKey||e.ctrlKey) && e.key === "k") { e.preventDefault(); $("#search-input").focus(); return; }
+  if (!map) return;
+  if (e.key === "Tab" && selected) { e.preventDefault(); branchFrom(selected); }
+  else if (e.key === "Enter" && selected) { e.preventDefault(); editTitle(selected); }
+  else if ((e.key === "Backspace" || e.key === "Delete") && selected) { e.preventDefault(); deleteNode(selected); }
+  else if (e.key.toLowerCase() === "n" && selected) { e.preventDefault(); openNote(selected); }
+  else if (e.key.toLowerCase() === "t") { e.preventDefault(); newThoughtCenter(); }
+});
+
+function newThoughtCenter(){
+  const r = stage.getBoundingClientRect();
+  const p = toWorld(r.left + r.width/2 + (Math.random()*120-60), r.top + r.height/2 + (Math.random()*120-60));
+  createNode(p.x-70, p.y-20, "", true);
+}
+$("#tb-thought").onclick = newThoughtCenter;
+$("#btn-new-thought").onclick = newThoughtCenter;
+/* ============================ NOTE PANEL ============================ */
+let notePanelId = null;
+const np = $("#notepanel");
+function openNote(id){
+  const n = map.nodes[id]; if (!n) return;
+  notePanelId = id;
+  np.classList.add("open");
+  $("#np-title").value = n.title;
+  $("#np-note").value = n.note || "";
+  $("#np-link").value = n.url || "";
+  $("#np-kind").value = n.kind || "";
+  const iw = $("#np-img");
+  if (n.img) { iw.classList.remove("hidden"); $("img", iw).src = n.img; } else iw.classList.add("hidden");
+  $("#np-date").textContent = new Date(n.created).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+  const conns = map.edges.filter(e => e.from===id || e.to===id)
+    .map(e => map.nodes[e.from===id ? e.to : e.from]).filter(Boolean);
+  $("#np-connections").innerHTML = conns.length
+    ? "Connected: " + conns.map(c => `<span class="conn" data-id="${c.id}">${esc(c.title||"Untitled")}</span>`).join("")
+    : "";
+  const ro = readOnly;
+  $("#np-title").readOnly = ro; $("#np-note").readOnly = ro; $("#np-link").readOnly = ro; $("#np-kind").disabled = ro;
+}
+function closeNote(){ notePanelId = null; np.classList.remove("open"); }
+function syncNotePanel(){ if (notePanelId && map.nodes[notePanelId]) openNote(notePanelId); }
+$("#np-close").onclick = closeNote;
+$("#np-connections").addEventListener("click", e => {
+  const c = e.target.closest(".conn"); if (!c) return;
+  focusNode(c.dataset.id); openNote(c.dataset.id);
+});
+const npBind = (sel, field) => { $(sel).addEventListener("input", () => {
+  if (readOnly || !notePanelId) return; const n = map.nodes[notePanelId]; if (!n) return;
+  n[field] = $(sel).value; renderNode(n); save();
+});};
+npBind("#np-title","title"); npBind("#np-note","note"); npBind("#np-link","url");
+$("#np-kind").addEventListener("change", () => {
+  if (readOnly || !notePanelId) return; const n = map.nodes[notePanelId];
+  n.kind = $("#np-kind").value; renderNode(n); save();
+});
+$("#np-linkgo").onclick = () => { const u = $("#np-link").value.trim(); if (u) window.open(u.startsWith("http")?u:"https://"+u, "_blank"); };
+
+function focusNode(id){
+  const n = map.nodes[id]; if (!n) return;
+  const el = nodeEls[id]; const w = el?el.offsetWidth:160, h = el?el.offsetHeight:50;
+  const r = stage.getBoundingClientRect();
+  world.style.transition = "transform .35s ease";
+  cam.x = r.width/2 - (n.x + w/2)*cam.z; cam.y = r.height/2 - (n.y + h/2)*cam.z;
+  applyCam(); setTimeout(() => world.style.transition = "", 380);
+  select(id); el && el.classList.remove("flash"); el && void el.offsetWidth; el && el.classList.add("flash");
+}
+
+/* ============================ IMAGES ============================ */
+function compressImage(file, cb){
+  const img = new Image();
+  img.onload = () => {
+    const maxW = 640, scale = Math.min(1, maxW / img.width);
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    cb(c.toDataURL("image/jpeg", 0.82));
+    URL.revokeObjectURL(img.src);
+  };
+  img.onerror = () => toast("Couldn't read that image");
+  img.src = URL.createObjectURL(file);
+}
+function addImageNode(file, x, y){
+  compressImage(file, dataUrl => {
+    createNode(x, y, "", false, {img: dataUrl});
+    toast("Image added — click it to caption");
+  });
+}
+let dragDepth = 0;
+stage.addEventListener("dragover", e => e.preventDefault());
+stage.addEventListener("dragenter", e => { e.preventDefault(); if(!readOnly && ++dragDepth) $("#drop-hint").classList.remove("hidden"); });
+stage.addEventListener("dragleave", e => { if (--dragDepth <= 0) { dragDepth = 0; $("#drop-hint").classList.add("hidden"); } });
+stage.addEventListener("drop", e => {
+  e.preventDefault(); dragDepth = 0; $("#drop-hint").classList.add("hidden");
+  if (readOnly) return;
+  const p = toWorld(e.clientX, e.clientY);
+  const files = [...(e.dataTransfer.files||[])].filter(f => f.type.startsWith("image/"));
+  if (files.length) { files.forEach((f,i) => addImageNode(f, p.x + i*40, p.y + i*40)); return; }
+  const txt = e.dataTransfer.getData("text/plain");
+  if (txt) dropText(txt, p);
+});
+document.addEventListener("paste", e => {
+  if (readOnly || !map) return;
+  if (e.target.matches("input,textarea") || e.target.isContentEditable) return;
+  const items = [...(e.clipboardData.items||[])];
+  const imgItem = items.find(i => i.type.startsWith("image/"));
+  const r = stage.getBoundingClientRect();
+  const p = toWorld(r.left + r.width/2, r.top + r.height/2);
+  if (imgItem) { addImageNode(imgItem.getAsFile(), p.x, p.y); return; }
+  const txt = e.clipboardData.getData("text/plain");
+  if (txt) dropText(txt.trim(), p);
+});
+function dropText(txt, p){
+  if (/^https?:\/\/\S+$/i.test(txt)) {
+    let host = ""; try { host = new URL(txt).hostname.replace("www.",""); } catch(e){}
+    createNode(p.x, p.y, host || "Link", false, {url: txt});
+    toast("Link added");
+  } else {
+    createNode(p.x, p.y, txt.slice(0, 90), false, txt.length > 90 ? {note: txt} : {});
+  }
+}
+$("#tb-image").onclick = () => {
+  if (readOnly) return;
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
+  inp.onchange = () => {
+    const r = stage.getBoundingClientRect(); const p = toWorld(r.left+r.width/2, r.top+r.height/2);
+    [...inp.files].forEach((f,i) => addImageNode(f, p.x + i*40, p.y + i*40));
+  };
+  inp.click();
+};
+$("#tb-link").onclick = () => {
+  if (readOnly) return;
+  modal("Add a link", "Paste any URL — it becomes a thought on your map.", "https://…", url => {
+    if (!url) return;
+    const r = stage.getBoundingClientRect(); const p = toWorld(r.left+r.width/2, r.top+r.height/2);
+    dropText(url.trim(), p);
+  });
+};
+
+/* ============================ SEARCH ============================ */
+$("#search-input").addEventListener("input", () => {
+  const q = $("#search-input").value.trim().toLowerCase();
+  const box = $("#search-results");
+  if (!q) { box.innerHTML = ""; return; }
+  const hits = [];
+  store.order.forEach(mid => {
+    const m = store.maps[mid]; if (!m) return;
+    Object.values(m.nodes).forEach(n => {
+      const hay = (n.title + " " + (n.note||"") + " " + (n.url||"")).toLowerCase();
+      if (hay.includes(q)) hits.push({m, n});
+    });
+  });
+  box.innerHTML = hits.slice(0, 30).map(h =>
+    `<div class="sr-item" data-map="${h.m.id}" data-node="${h.n.id}"><b>${esc(h.n.title||"Untitled")}</b>${h.n.note?` — ${esc(h.n.note.slice(0,40))}`:""}<span class="in">in ${esc(h.m.name)}</span></div>`
+  ).join("") || `<div class="sr-item">No matches</div>`;
+});
+$("#search-results").addEventListener("click", e => {
+  const it = e.target.closest(".sr-item"); if (!it || !it.dataset.map) return;
+  if (map.id !== it.dataset.map) openMap(it.dataset.map);
+  setTimeout(() => focusNode(it.dataset.node), 60);
+  $("#search-input").value = ""; $("#search-results").innerHTML = "";
+});
+
+/* ============================ MAPS / SIDEBAR ============================ */
+function renderMapList(){
+  $("#map-list").innerHTML = store.order.map(id => {
+    const m = store.maps[id]; if (!m) return "";
+    return `<div class="map-item ${map && id===map.id ? "active":""}" data-id="${id}">
+      <span class="ic">◈</span><span class="nm">${esc(m.name)}</span>
+      <button class="del" title="Delete map">✕</button></div>`;
+  }).join("");
+}
+$("#map-list").addEventListener("click", e => {
+  const item = e.target.closest(".map-item"); if (!item) return;
+  if (e.target.classList.contains("del")) {
+    const m = store.maps[item.dataset.id];
+    if (confirm(`Delete map “${m.name}”? This can't be undone.`)) {
+      delete store.maps[item.dataset.id];
+      store.order = store.order.filter(x => x !== item.dataset.id);
+      if (SUPA_ENABLED && cloud.user) cloud.deleteMap(item.dataset.id);
+      if (map && map.id === item.dataset.id) {
+        if (store.order.length) openMap(store.order[0]); else newMap();
+      }
+      renderMapList(); save();
+    }
+    return;
+  }
+  openMap(item.dataset.id);
+});
+function newMap(){
+  const m = blankMap();
+  store.maps[m.id] = m; store.order.unshift(m.id);
+  openMap(m.id); save();
+  setTimeout(() => { $("#map-name").focus(); $("#map-name").select(); }, 80);
+}
+$("#btn-new-map").onclick = newMap;
+function openMap(id){
+  const m = store.maps[id]; if (!m) return;
+  map = m; store.lastMap = id;
+  store.order = [id, ...store.order.filter(x => x !== id)];
+  deselect(); closeNote();
+  Object.keys(nodeEls).forEach(k => { nodeEls[k].remove(); delete nodeEls[k]; });
+  Object.values(map.nodes).forEach(renderNode);
+  drawEdges();
+  cam = {...(m.cam || {x:200,y:200,z:1})}; applyCam();
+  $("#map-name").value = m.name;
+  renderMapList(); save(false);
+}
+$("#map-name").addEventListener("input", () => {
+  if (readOnly || !map) return;
+  map.name = $("#map-name").value || "Untitled map";
+  renderMapList(); save();
+});
+$("#sb-collapse").onclick = () => $("#sidebar").classList.add("collapsed");
+$("#sb-open").onclick = () => $("#sidebar").classList.remove("collapsed");
+
+/* ============================ MODAL / TOAST ============================ */
+function modal(title, text, placeholder, cb, prefill){
+  const ov = document.createElement("div"); ov.id = "overlay";
+  ov.innerHTML = `<div class="modal"><h3>${esc(title)}</h3><p>${text}</p>
+    <div class="row"><input placeholder="${esc(placeholder||"")}" value="${esc(prefill||"")}">
+    <button class="primary">OK</button><button class="plain">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+  const inp = $("input", ov);
+  inp.focus(); if (prefill) inp.select();
+  const done = v => { ov.remove(); cb && cb(v); };
+  $(".primary", ov).onclick = () => done(inp.value);
+  $(".plain", ov).onclick = () => done(null);
+  inp.onkeydown = e => { e.stopPropagation(); if (e.key==="Enter") done(inp.value); if (e.key==="Escape") done(null); };
+  ov.onclick = e => { if (e.target === ov) done(null); };
+}
+let toastTimer = null;
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ============================ SHARING ============================ */
+$("#btn-share").onclick = async () => {
+  if (!map) return;
+  if (!SUPA_ENABLED) { toast("Sharing needs the synced version of Atlas"); return; }
+  toast("Creating share link…");
+  try {
+    const sb = await cloud.client();
+    const snapshot = {name: map.name, nodes: map.nodes, edges: map.edges};
+    let sid = map.shareId;
+    if (sid) {
+      const {error} = await sb.from("shares").update({doc: snapshot}).eq("id", sid);
+      if (error) sid = null;
+    }
+    if (!sid) {
+      const {data, error} = await sb.from("shares").insert({doc: snapshot}).select("id").single();
+      if (error) throw error;
+      sid = data.id; map.shareId = sid; save();
+    }
+    const url = location.origin + location.pathname + "?s=" + sid;
+    await navigator.clipboard.writeText(url).catch(()=>{});
+    modal("Share this map", "Anyone with this link can view a read-only copy — no account needed. Press Share again after changes to update it.", "", null, url);
+  } catch (err) {
+    console.error(err); toast("Couldn't create share link — are you online?");
+  }
+};
+async function loadSharedMap(sid){
+  try {
+    const sb = await cloud.client();
+    const {data, error} = await sb.from("shares").select("doc").eq("id", sid).single();
+    if (error || !data) throw error || new Error("not found");
+    readOnly = true;
+    map = Object.assign(blankMap(data.doc.name), {nodes: data.doc.nodes, edges: data.doc.edges});
+    $("#landing").classList.add("hidden"); $("#app").classList.remove("hidden");
+    $("#sidebar").classList.add("collapsed");
+    $("#sb-open").classList.add("hidden");
+    $("#topright").classList.add("hidden"); $("#toolbar").classList.add("hidden");
+    $("#ro-banner").classList.remove("hidden");
+    $("#map-name").readOnly = true; $("#map-name").value = map.name;
+    Object.values(map.nodes).forEach(renderNode);
+    drawEdges(); setTimeout(() => centerView(false), 50);
+    $("#ro-try").onclick = e => { e.preventDefault(); location.href = location.origin + location.pathname; };
+  } catch (err) {
+    console.error(err);
+    document.body.innerHTML = `<div style="display:flex;height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:sans-serif;color:#6b6659">
+      <div style="font-size:40px">🗺</div><div>This shared map isn't available.</div>
+      <a href="${location.origin+location.pathname}" style="color:#5a5ad0">Open Atlas →</a></div>`;
+  }
+}
+
+/* ============================ SUPABASE CLOUD ============================ */
+const cloud = {
+  sb: null, user: null,
+  async client(){
+    if (this.sb) return this.sb;
+    if (!window.supabase) await new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+    this.sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    return this.sb;
+  },
+  async init(){
+    if (!SUPA_ENABLED) return;
+    try {
+      const sb = await this.client();
+      const {data} = await sb.auth.getSession();
+      if (data && data.session) { this.user = data.session.user; this.onLogin(); }
+      sb.auth.onAuthStateChange((ev, session) => {
+        const wasIn = !!this.user;
+        this.user = session ? session.user : null;
+        if (this.user && !wasIn) this.onLogin();
+        if (!this.user && wasIn) this.onLogout();
+      });
+    } catch(e){ console.warn("cloud init failed", e); }
+  },
+  async onLogin(){
+    $("#sync-status").textContent = "Synced · " + (this.user.email || "signed in");
+    $("#btn-signin").textContent = "Sign out";
+    $("#auth-form").classList.add("hidden");
+    await this.pullAll();
+    Object.values(store.maps).forEach(m => this.pushMap(m));
+  },
+  onLogout(){
+    $("#sync-status").textContent = "Local only — your maps live in this browser.";
+    $("#btn-signin").textContent = "Sign in to sync";
+  },
+  async pullAll(){
+    try {
+      const sb = await this.client();
+      const {data, error} = await sb.from("maps").select("id,doc,updated_at").order("updated_at",{ascending:false});
+      if (error) throw error;
+      (data||[]).forEach(row => {
+        const remote = row.doc; remote.id = row.id;
+        const local = store.maps[row.id];
+        if (!local || (remote.updated||0) > (local.updated||0)) {
+          store.maps[row.id] = remote;
+          if (!store.order.includes(row.id)) store.order.push(row.id);
+        }
+      });
+      renderMapList(); save(false);
+      if (map && store.maps[map.id]) openMap(map.id);
+      toast("Maps synced");
+    } catch(e){ console.warn("pull failed", e); }
+  },
+  async pushMap(m){
+    if (!this.user) return;
+    try {
+      const sb = await this.client();
+      const {error} = await sb.from("maps").upsert({id: m.id, user_id: this.user.id, name: m.name, doc: m, updated_at: new Date().toISOString()});
+      if (error) throw error;
+      $("#sync-status").textContent = "Synced · " + (this.user.email || "signed in");
+    } catch(e){ console.warn("push failed", e); $("#sync-status").textContent = "Sync issue — changes saved locally"; }
+  },
+  async deleteMap(id){
+    try { const sb = await this.client(); await sb.from("maps").delete().eq("id", id); } catch(e){}
+  }
+};
+$("#btn-signin").onclick = async () => {
+  if (!SUPA_ENABLED) { toast("Sync isn't configured in this build"); return; }
+  if (cloud.user) { const sb = await cloud.client(); await sb.auth.signOut(); toast("Signed out — maps stay on this device"); return; }
+  $("#auth-form").classList.toggle("hidden");
+  $("#auth-email").focus();
+};
+$("#auth-send").onclick = async () => {
+  const email = $("#auth-email").value.trim();
+  if (!/.+@.+\..+/.test(email)) { toast("Enter a valid email"); return; }
+  try {
+    const sb = await cloud.client();
+    const {error} = await sb.auth.signInWithOtp({email, options:{emailRedirectTo: location.origin + location.pathname}});
+    if (error) throw error;
+    toast("Magic link sent — check your email ✉");
+    $("#auth-form").classList.add("hidden");
+  } catch(e){ console.error(e); toast("Couldn't send link: " + (e.message||"error")); }
+};
+
+/* ============================ BOOT ============================ */
+function enterApp(){
+  $("#landing").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  if (!store.order.length) {
+    const demo = makeDemoMap();
+    store.maps[demo.id] = demo; store.order.push(demo.id);
+  }
+  openMap(store.maps[store.lastMap] ? store.lastMap : store.order[0]);
+  store.seenLanding = true; save(false);
+}
+function boot(){
+  loadStore();
+  const params = new URLSearchParams(location.search);
+  if (params.get("s") && SUPA_ENABLED) { $("#app").classList.remove("hidden"); loadSharedMap(params.get("s")); return; }
+  cloud.init();
+  const hasAuthHash = location.hash.includes("access_token");
+  if (store.seenLanding || store.order.length || hasAuthHash) enterApp();
+  else {
+    $("#landing").classList.remove("hidden");
+    $("#btn-guest").onclick = enterApp;
+    $("#btn-landing-signin").onclick = () => { enterApp(); if (SUPA_ENABLED) { $("#auth-form").classList.remove("hidden"); $("#auth-email").focus(); } };
+  }
+  window.addEventListener("resize", positionTools);
+}
+boot();
+</script>
+</body>
+</html>
